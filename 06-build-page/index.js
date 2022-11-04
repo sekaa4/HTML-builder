@@ -55,21 +55,15 @@ async function deleteFiles() {
 }
 
 async function makeIndex(absPathFrom, absPathTo, template) {
-  const templateTags = ['{{header}}', '{{articles}}', '{{footer}}', '{{about}}'];
   const files = await readDir(absPathFrom);
   const contentTemplate = await readFile(template, { encoding: 'utf8' });
   let indexContent = contentTemplate;
-  for (let prop of templateTags) {
-    if (contentTemplate.includes(prop)) {
-      const nameArr = [];
-      const index = templateTags.indexOf(prop);
-      templateTags[index].split('')
-        .forEach((el, i) => (el !== '{' && el !== '}')
-          ? nameArr.push(el)
-          : null);
-      const name = nameArr.join('') + '.html';
-      const contentComponent = await readFile(path.join(absPathFrom, name), { encoding: 'utf8' });
-      indexContent = indexContent.replaceAll(prop, contentComponent);
+  for (let file of files) {
+    const fileName = path.basename(path.join(absPathFrom, file), '.html');
+    let strTemplate = `{{${ fileName }}}`;
+    if (contentTemplate.includes(strTemplate)) {
+      const contentComponent = await readFile(path.join(absPathFrom, file), { encoding: 'utf8' });
+      indexContent = indexContent.replaceAll(strTemplate, contentComponent);
     }
   }
 
